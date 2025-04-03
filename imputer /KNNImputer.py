@@ -1,0 +1,3 @@
+class KNNImputer : 
+  def __init__(self): 
+    pass 
