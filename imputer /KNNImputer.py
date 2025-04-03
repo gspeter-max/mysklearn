@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from typing import Union
 from scipy.stats import mode
 class Knnimputer:
@@ -13,7 +14,7 @@ class Knnimputer:
         i = 0
         temp_list = []
         for values in col:
-            if np.isnan(values):
+            if pd.isna(values):
                 i += 1
                 temp_list.append(imput_values[i-1])
             else:
@@ -32,7 +33,7 @@ class Knnimputer:
 
         for index , values in enumerate(self.col):
 
-            if np.isnan(values):
+            if pd.isna(values):
                 if index >= first_index:
                     x__ = (len(self.col)-1) - ( index + last_index )
                     if x__ >= 0:
@@ -56,7 +57,15 @@ class Knnimputer:
             return self.compute_values(self.col, means)
 
         elif self.strategy == 'mode':
+            print(self.closest_values)
 
+            ''' 
+            pd.isna ---> changed for categoricaly fix that 
+            create own mode functon and 
+            create another methods 
+
+            ''' 
+            
             modes = mode(self.closest_values,axis = 1)
             return self.compute_values(self.col, modes)
         else:
@@ -67,10 +76,13 @@ structured_arr = np.arange(100, dtype=float)
 structured_arr[::5] = np.nan
 
 # structured_list = [float('nan') if i % 5 == 0 else i for i in range(100)]
-
-imputer = Knnimputer(structured_arr,k = 3,strategy = 'mean')
+mixed_list = ["apple", None, "banana", "orange", None, "grape"]
+imputer = Knnimputer(mixed_list,k = 3,strategy = 'mode')
 result = imputer.call()
 print(result)
+
+
+
 
 
 '''
