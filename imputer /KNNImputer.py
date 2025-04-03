@@ -1,24 +1,80 @@
-class KNNImputer : 
-  def __init__(self): 
-    pass 
+import numpy as np
+from typing import Union
+from scipy.stats import mode
+class Knnimputer:
 
+    def __init__(self,col : Union[np.ndarray,list] , k : Union[int,float] , strategy : str):
+            self.k = k
+            self.strategy  = strategy
+            self.col = col
+            self.closest_values = []
+
+    def compute_values(self,col,imput_values):
+        i = 0
+        temp_list = []
+        for values in col:
+            if np.isnan(values):
+                i += 1
+                temp_list.append(imput_values[i-1])
+            else:
+                temp_list.append(values)
+
+        return  np.array(temp_list)
+
+    def call(self):
+        assert len(self.col) >= self.k , ValueError(' k must be equal or greater than len(col)')
+        if len(self.col) == self.k:
+            global_mean = np.mean(self.col)
+            return np.where(np.isnan(self.col) , global_mean,self.col)
+
+        first_index = int(np.floor(self.k/ 2))
+        last_index = int(np.ceil(self.k / 2))
+
+        for index , values in enumerate(self.col):
+
+            if np.isnan(values):
+                if index >= first_index:
+                    x__ = (len(self.col)-1) - ( index + last_index )
+                    if x__ >= 0:
+                        self.closest_values.append(np.concatenate([self.col[index - first_index :index],
+                            self.col[index + 1 : index + 1 + last_index]
+                            ]))
+                    else:
+                        x___ = len(self.col)- ( index + 1 )
+                        if x__ == 0 :
+                            self.closest_values.append(self.col[index - ( self.k - x__ ): index])
+                        else:
+                            self.closest_values.append(np.concatenate([self.col[ index - ( self.k - x___)  : index ],self.col[index + 1:]]))
+                else:
+                    x_ = index - first_index
+                    self.closest_values.append(np.concatenate([self.col[:first_index + x_],self.col[index + 1 : index + 1 +(last_index - x_) ]]))
+
+             # write that like list have that list of value  of k neighbors
+            # diff null values have diff - diff values
+        if self.strategy == 'mean':
+            means = np.mean(self.closest_values, axis = 1)  
+            return self.compute_values(self.col, means)
+
+        elif self.strategy == 'mode':
+
+            modes = mode(self.closest_values,axis = 1)
+            return self.compute_values(self.col, modes)
+        else:
+            raise ValueError(f"{self.strategy} is not added over here")
+
+
+structured_arr = np.arange(100, dtype=float)
+structured_arr[::5] = np.nan
+
+# structured_list = [float('nan') if i % 5 == 0 else i for i in range(100)]
+
+imputer = Knnimputer(structured_arr,k = 3,strategy = 'mean')
+result = imputer.call()
+print(result)
 
 
 '''
-tests : 
-
-
-
-
-
-
-index 0 
--2 
-
 ---------------------------------------------------------
-
-
-
 index ==== 3 
 
 1. 3 > 2 --> 
